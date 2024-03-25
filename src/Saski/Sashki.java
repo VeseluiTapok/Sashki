@@ -9,7 +9,6 @@ import java.net.URL;
 public class Sashki extends JFrame{
     Game game;
     private JPanel panel;
-    private boolean whoStart;
     private final int cols = 8;
     private final int rows = 8;
     private final int imageSize = 50;
@@ -43,18 +42,30 @@ public class Sashki extends JFrame{
             }
         };
         panel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                int x = e.getX() / imageSize;
-                int y = e.getY() / imageSize;
+            private void ifLeftButtonSelected(MouseEvent mouseEvent) {
+                int x = mouseEvent.getX() / imageSize;
+                int y = mouseEvent.getY() / imageSize;
                 Coord coord = new Coord(x, y);
-                if (e.getButton() == MouseEvent.BUTTON1) {
-                    if (game.pressInBlack(coord)) {
-                            game.setAny(coord, Box.Fon);
-                            game.setClosedBlack(coord);
+                if (mouseEvent.getButton() == MouseEvent.BUTTON1) {
+                    if (game.getAny(coord) == Box.BlackDamka) {
+
                     }
-                    else if (game.isClosedBalck(coord)) {
+                    else if (game.pressInBlack(coord)) {
+                        if (coord.y == 7) {
+                            game.setAny(coord, Box.BlackDamka);
+                        }
+                        else {
+                            game.setClosedBlack(coord);
+                        }
+                    }
+                    else if (game.isClosedBlack(coord)) {
                         Coord coord1;
+                        if (game.getAny(game.whiteRight(coord)) == Box.FonWhiteOnee) {
+                            game.setAny(game.whiteRight(coord), Box.Fon);
+                        }
+                        else if (game.getAny(game.whiteLeft(coord)) == Box.FonWhiteOnee) {
+                            game.setAny(game.whiteLeft(coord), Box.Fon);
+                        }
                         game.pressLeftButtonBlack(coord);
                         for (int i = 0; i < 8; i++) {
                             for (int a = 0; a < 8; a++) {
@@ -66,31 +77,43 @@ public class Sashki extends JFrame{
                         }
                     }
                     if (game.pressInWhite(coord)) {
-                        if (!game.isAnyWhiteHere(coord, Box.FonWhiteOne)) {
-                            coord.x -= 1;
-                            coord.y += 1;
-                            game.setAny(coord, Box.Fon);
-                            if (game.isAnyWhiteHere(coord, Box.FonBlackOne)) {
-                                game.setClosedWhite(coord);
-                            }
-                        }
-                        if (game.isAnyWhiteHere(coord, Box.FonBlackOne)) {
+                        if (coord.y == 0) {
+                            game.setAny(coord, Box.WhiteDamka);
+                            int a = coord.y + 1;
                             Coord coord1;
-                            coord.x++;
-                            coord.y--;
-                            if (game.getAny(coord) != Box.FonBlackOne ||
-                                    game.getAny(coord) != Box.FonWhiteOne) {
-                                game.setAny(coord, Box.Closedd);
-                                coord.x -= 2;
-                                if (game.getAny(coord) != Box.FonBlackOne ||
-                                        game.getAny(coord) != Box.FonWhiteOne) {
-                                    game.setAny(coord, Box.Closedd);
+                            if (coord.x != 0) {
+                                for (int i = coord.x - 1;i >= 0; i--) {
+                                    if (a < 8) {
+                                      a++;
+                                    }
+                                    coord1 = new Coord(i, a);
+                                    game.setAny(coord1, Box.Closedd);
+                                }
+                            }
+                            a = coord.y - 1;
+                            if (coord.x != 7) {
+                                for (int i = coord.x - 1;i >= 0; i--) {
+                                    if (a >= 0) {
+                                        a--;
+                                    }
+                                    coord1 = new Coord(i, a);
+                                    game.setAny(coord1, Box.Closedd);
                                 }
                             }
                         }
-                    }
+
+                        else {
+                            game.setClosedWhite(coord);
+                        }
+                        }
                     else if (game.isClosedWhite(coord)) {
                         Coord coord1;
+                        if (game.getAny(game.blackRight(coord)) == Box.FonBlackOnee) {
+                            game.setAny(game.blackRight(coord), Box.Fon);
+                        }
+                        else if (game.getAny(game.blackLeft(coord)) == Box.FonBlackOnee) {
+                            game.setAny(game.blackLeft(coord), Box.Fon);
+                        }
                         game.pressLeftButtonWhite(coord);
                         for (int i = 0; i < 8; i++) {
                             for (int a = 0; a < 8; a++) {
@@ -102,8 +125,17 @@ public class Sashki extends JFrame{
                         }
                     }
                 }
-                if (e.getButton() == MouseEvent.BUTTON2) {
-                    game.start();
+            }
+            public void ifMouseRollSelected() {
+                game.start();
+            }
+            @Override
+            public void mousePressed(MouseEvent mouseEvent) {
+                if (mouseEvent.getButton() == MouseEvent.BUTTON1) {
+                    ifLeftButtonSelected(mouseEvent);
+                }
+                if (mouseEvent.getButton() == MouseEvent.BUTTON2) {
+                    ifMouseRollSelected();
                 }
                 i++;
                 panel.repaint();

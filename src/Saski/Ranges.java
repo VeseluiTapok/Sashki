@@ -6,7 +6,6 @@ import java.util.Random;
 public class Ranges {
     private static Coord size;
     private static ArrayList<Coord> allCoords;
-    private static Random random = new Random();
     public static void setSize(Coord _size) {
         size = _size;
         allCoords = new ArrayList<Coord>();

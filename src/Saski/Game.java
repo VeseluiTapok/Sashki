@@ -1,5 +1,7 @@
 package Saski;
 
+import java.util.concurrent.Callable;
+
 public class Game {
     private Mapa mapa;
     public Game(int cols, int rows) {
@@ -12,90 +14,118 @@ public class Game {
         mapa.start();
     }
     public boolean pressInBlack(Coord coord) {
-        if (mapa.Map.get(coord) == Box.FonBlackOne) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return mapa.Map.get(coord) == Box.FonBlackOne;
     }
     public boolean pressInWhite(Coord coord) {
-        if (mapa.Map.get(coord) == Box.FonWhiteOne) {
-            return true;
-        }
-        else {
-            return false;
-        }
+       return mapa.Map.get(coord) == Box.FonWhiteOne;
     }
-    public Coord blackRight(Coord coord) {
-        coord.x -= 1;
-        coord.y += 1;
-        return coord;
+    public Coord blackRight(final Coord oldCoord) {
+        return new Coord(oldCoord.x - 1,oldCoord.y + 1);
     }
-    public Coord blackLeft(Coord coord) {
-        coord.x += 2;
-        return coord;
+    public Coord blackLeft(final Coord oldCoord) {
+        return new Coord(oldCoord.x + 1, oldCoord.y + 1);
     }
-    public Coord whiteRight(Coord coord) {
-        if (coord.x != 0) {
-            coord.x -= 1;
-            coord.y -= 1;
-        }
-        return coord;
+    public Coord whiteRight(final Coord oldCoord) {
+        return new Coord(oldCoord.x + 1, oldCoord.y - 1);
     }
-    public Coord whiteLeft(Coord coord) {
-        if (coord.x != 7) {
-            coord.x += 2;
-        }
-        return coord;
+    public Coord whiteLeft(final Coord oldCoord) {
+        return new Coord(oldCoord.x - 1, oldCoord.y -1);
     }
     public void setClosedBlack(Coord coord) {
-        if (coord.x != 0) {
-            mapa.Map.set(blackRight(coord), Box.Closed);
-        }
-        if (coord.x != 7) {
-            mapa.Map.set(blackLeft(coord), Box.Closed);
-        }
+            if (coord.x != 0) {
+                if (pressInWhite(blackRight(coord))) {
+                    if (!pressInBlack(blackRight(blackRight(coord)))) {
+                        if (!pressInWhite(blackRight(blackRight(coord)))) {
+                            mapa.Map.set(blackRight(coord), Box.FonWhiteOnee);
+                            mapa.Map.set(blackRight(blackRight(coord)), Box.Closed);
+                            setAny(coord, Box.Fon);
+                        }
+                    }
+                }
+            }
+            if (coord.x != 7) {
+                if (pressInWhite(blackLeft(coord))) {
+                    if (!pressInBlack(blackLeft(blackLeft(coord)))) {
+                        if (!pressInWhite(blackLeft(blackLeft(coord)))) {
+                            mapa.Map.set(blackLeft(coord), Box.FonWhiteOnee);
+                            mapa.Map.set(blackLeft(blackLeft(coord)), Box.Closed);
+                            setAny(coord, Box.Fon);
+                        }
+                    }
+                }
+            }
+            if (coord.x != 7) {
+                if (!pressInBlack(blackLeft(coord))) {
+                    if (!pressInWhite(blackLeft(coord))) {
+                        if (getAny(blackLeft(coord)) != Box.FonWhiteOnee) {
+                            if (mapa.Map.get(blackRight(blackRight(coord))) != Box.Closed) {
+                                setAny(coord, Box.Fon);
+                                mapa.Map.set(blackLeft(coord), Box.Closed);
+                            }
+                        }
+                    }
+                }
+            }
+            if (coord.x != 0) {
+                if (!pressInBlack(blackRight(coord))) {
+                    if (!pressInWhite(blackRight(coord))) {
+                        if (getAny(blackRight(coord)) != Box.FonWhiteOnee) {
+                            if (mapa.Map.get(blackLeft(blackLeft(coord))) != Box.Closed) {
+                                setAny(coord, Box.Fon);
+                                mapa.Map.set(blackRight(coord), Box.Closed);
+                            }
+                        }
+                    }
+                }
+            }
     }
     public void setClosedWhite(Coord coord) {
-        if (coord.x != 0) {
-            mapa.Map.set(whiteRight(coord), Box.Closedd);
-        }
-        if (coord.x != 7) {
-            mapa.Map.set(whiteLeft(coord), Box.Closedd);
-        }
-    }
-    public int isAnyBlackHere(Coord coord, Box box) {
-        if (mapa.Map.get(blackRight(coord)) == box) {
-            coord.x--;
-            coord.y--;
-            return 1;
-        }
-        else if (mapa.Map.get(blackLeft(coord)) == box) {
-            coord.x++;
-            coord.y++;
-            return 2;
-        }
-        else if (mapa.Map.get(blackRight(coord)) == box &&
-                mapa.Map.get(blackLeft(coord)) == box) {
-            coord.x++;
-            coord.y++;
-            return 3;
-        }
-        else {
-            return 4;
-        }
-    }
-    public boolean isAnyWhiteHere(Coord coord, Box box) {
-        if (mapa.Map.get(whiteRight(coord)) == box) {
-            return true;
-        }
-        else if (mapa.Map.get(whiteLeft(coord)) == box) {
-            return true;
-        }
-        else {
-            return false;
-        }
+            if (coord.x != 7) {
+                if (pressInBlack(whiteRight(coord))) {
+                    if (!pressInBlack(whiteRight(whiteRight(coord)))) {
+                        if (!pressInWhite(whiteRight(whiteRight(coord)))) {
+                            mapa.Map.set(whiteRight(coord), Box.FonBlackOnee);
+                            mapa.Map.set(whiteRight(whiteRight(coord)), Box.Closedd);
+                            setAny(coord, Box.Fon);
+                        }
+                    }
+                }
+            }
+            if (coord.x != 0) {
+                if (pressInBlack(whiteLeft(coord))) {
+                    if (!pressInBlack(whiteLeft(whiteLeft(coord)))) {
+                        if (!pressInWhite(whiteLeft(whiteLeft(coord)))) {
+                            mapa.Map.set(whiteLeft(coord), Box.FonBlackOnee);
+                            mapa.Map.set(whiteLeft(whiteLeft(coord)), Box.Closedd);
+                            setAny(coord, Box.Fon);
+                        }
+                    }
+                }
+            }
+            if (coord.x != 0) {
+                if (!pressInWhite(whiteLeft(coord))) {
+                    if (!pressInBlack(whiteLeft(coord))) {
+                        if (getAny(whiteLeft(coord)) != Box.FonBlackOnee) {
+                            if (getAny(whiteRight(whiteRight(coord))) != Box.Closedd) {
+                                mapa.Map.set(whiteLeft(coord), Box.Closedd);
+                                setAny(coord, Box.Fon);
+                            }
+                        }
+                    }
+                }
+            }
+            if (coord.x != 7) {
+                if (!pressInWhite(whiteRight(coord))) {
+                    if (!pressInBlack(whiteRight(coord))) {
+                        if (getAny(whiteRight(coord)) != Box.FonBlackOnee) {
+                            if (getAny(whiteLeft(whiteLeft(coord))) != Box.Closedd) {
+                                mapa.Map.set(whiteRight(coord), Box.Closedd);
+                                setAny(coord, Box.Fon);
+                            }
+                        }
+                    }
+                }
+            }
     }
     public void setAny(Coord coord, Box box) {
         mapa.Map.set(coord, box);
@@ -106,21 +136,11 @@ public class Game {
     public Box getBox(Coord coord) {
         return mapa.get(coord);
     }
-    public boolean isClosedBalck(Coord coord) {
-        if (mapa.Map.get(coord) == Box.Closed) {
-            return true;
-        }
-        else {
-            return false;
-        }
+    public boolean isClosedBlack(Coord coord) {
+        return mapa.Map.get(coord) == Box.Closed;
     }
     public boolean isClosedWhite(Coord coord) {
-        if (mapa.Map.get(coord) == Box.Closedd) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return mapa.Map.get(coord) == Box.Closedd;
     }
     public void pressLeftButtonBlack(Coord coord) {
         mapa.Map.set(coord, Box.FonBlackOne);
@@ -128,4 +148,35 @@ public class Game {
     public void pressLeftButtonWhite(Coord coord) {
         mapa.Map.set(coord, Box.FonWhiteOne);
     }
+    public void blackDamka(final Coord coord) {
+        Coord coord1;
+        int a = coord.y - 1;
+        for (int i = coord.x + 1;i < 8; i++) {
+            a--;
+            coord1 = new Coord(i, a);
+            setAny(coord1, Box.Closed);
+        }
+        a = coord.y - 1;
+        for (int i = coord.x - 1; i >= 0; i--) {
+            a--;
+            coord1 = new Coord(i, a);
+            setAny(coord1, Box.Closed);
+        }
+    }
+    public void whiteDamka(final Coord coord) {
+        Coord coord1;
+        int a = coord.y + 1;
+        for (int i = coord.x - 1;i < 8; i--) {
+            a++;
+            coord1 = new Coord(i, a);
+            setAny(coord1, Box.Closed);
+        }
+        a = coord.y + 1;
+        for (int i = coord.x + 1; i >= 0; i++) {
+            a++;
+            coord1 = new Coord(i, a);
+            setAny(coord1, Box.Closed);
+        }
+    }
 }
+
